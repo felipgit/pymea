@@ -1,0 +1,7 @@
+{
+    "acu": "intellian_v100",
+    "host": "10.224.77.2",
+    "port": 161,
+    "community": "public",
+    "interval": 600
+}
