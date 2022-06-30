@@ -1,0 +1,16 @@
+[Unit]
+Description=PYMEA
+After=network.target
+After=syslog.target
+
+[Install]
+WantedBy=multi-user.target
+Alias=stunnel.target
+
+[Service]
+Type=idle
+ExecStart=/etc/pymea/app.py -f /etc/pymea/config.json
+ExecStop=/usr/bin/pkill -INT -F /var/run/pymea.pid
+TimeoutSec=60
+Restart=always
+PrivateTmp=false
