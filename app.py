@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import socket, threading, time, os, datetime, math, sys, getopt, operator
+import socket, threading, time, os, datetime, math, sys, getopt, operator, json
 from decimal import Decimal
 from functools import reduce
 
@@ -22,7 +22,7 @@ class Server(object):
     def listen(self):
         self.sock.listen(5)
         while True:
-            print("SERVER: Waiting for new connection")
+            # print("SERVER: Waiting for new connection")
             client, address = self.sock.accept()
             client.settimeout(5)
             threading.Thread(target = self.listenToClient,args = (client,)).start()
@@ -32,7 +32,7 @@ class Server(object):
         content = open(self.file, "rb")
         content = content.read()
         try:
-            print("SERVER: Sent data to "+ip+":"+str(port))
+            # print("SERVER: Sent data to "+ip+":"+str(port))
             client.sendall(content)
             return True
         except KeyboardInterrupt:
@@ -43,7 +43,7 @@ class Server(object):
             return False
 
     def listenToClient(self, client):
-        print("SERVER: Client connected")
+        # print("SERVER: Client connected")
         while True:
             try:
                 if not self.send(client):
@@ -52,7 +52,7 @@ class Server(object):
             except KeyboardInterrupt:
                 print("SERVER: User aborted server in listenToClient")
             except Exception as e:
-                print("SERVER: Client disconnected")
+                # print("SERVER: Client disconnected")
                 print(e)
                 client.close()
                 return False
@@ -62,12 +62,13 @@ class Server(object):
 
 
 class SNMP(object):
-    def __init__(self, type, host, port, community, file):
+    def __init__(self, type, host, port, community, file, interval):
         self.type = type
         self.host = host
         self.port = port
         self.community = community
         self.file = file
+        self.interval = int(interval)
         self.running = True
         self.acu_models = {
             'intellian_v100': {
@@ -102,12 +103,6 @@ class SNMP(object):
                 # Get data from source
                 data = self.collect()
 
-                # Rewrite data if not type = intellian_v100
-                if not self.type == 'intellian_v100':
-                    print("SNMP: Trying to rewrite data")
-                    data_new = 'rewrite data format'
-                    data = data_new
-
                 # Generate NMEA string content
                 string = self.nmea(data)
 
@@ -118,13 +113,13 @@ class SNMP(object):
                 nmeastring = '$'+string+'*'+check
 
                 # Print for debug
-                print("NMEA: "+nmeastring)
+                # print("NMEA: "+nmeastring)
 
                 # Save full NMEA string to file
                 self.write(nmeastring)
 
                 # Wait for new interval
-                for i in range(1, 60):
+                for i in range(1, self.interval):
                     i += 1
                     if not self.running:
                         break
@@ -155,14 +150,18 @@ class SNMP(object):
 
     def collect(self):
         data = {}
-        #check if acu alive
-        #check if acu output needs conversion
         values = ['heading', 'latitude', 'longitude', 'speed']
         for value in values:
             if self.acu_models[self.type][value]:
                 data[value] = self.get(self.acu_models[self.type][value])
             else:
-                data[value] = 0
+                data[value] = ''
+        #check if acu output needs conversion
+        # Rewrite data if not type = intellian_v100
+        if not self.type == 'intellian_v100':
+            print("SNMP: Trying to rewrite data")
+            data_new = 'rewrite data format'
+            data = data_new
         return data
 
     def dms(self, decimal):
@@ -207,18 +206,12 @@ if __name__ == "__main__":
     print("MAIN: Starting")
     lfile = "/tmp/data.file"
     lport = int(5555)
-    interval = 600
+    file = False
 
-    argv = sys.argv[1:]
     try:
-        opts, args = getopt.getopt(argv,'h:c:a:p:',['host=','community=','acu=','port='])
+        opts, args = getopt.getopt(sys.argv[1:],'h:c:a:p:f:i:',['host=','community=','acu=','port=','file','interval'])
     except getopt.GetoptError:
         print('ERROR: Bad arguments. See below example:')
-        print('getgps.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
-        sys.exit(2)
-
-    if len(sys.argv) != 9:
-        print('ERROR: Missing arguments. See below example:')
         print('getgps.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
         sys.exit(2)
 
@@ -231,37 +224,90 @@ if __name__ == "__main__":
             acu = arg
         elif opt in ('-p', '--port'):
             port = arg
+        elif opt in ('-f', '--file'):
+            file = arg
+        elif opt in ('-i', '--interval'):
+            interval = arg
+
+    # Init PID file
+    with open('/var/run/pymea.pid', 'w') as pidfile:
+        try:
+            pid = str(os.getpid())
+        except Exception as e:
+            print('ERROR: Failed to get PID')
+            print(e)
+            sys.exit(2)
+        try:
+            pidfile.write(pid)
+            pidfile.close()
+        except Exception as e:
+            print('ERROR: Failed to save PID')
+            print(e)
+            sys.exit(2)
+
+    # Check if config file has been specified
+    if file:
+        # Read values from config file
+        try:
+            configdata = open(file, 'r')
+        except FileNotFoundError:
+            print('ERROR: Config file not found ('+file+')')
+            sys.exit(2)
+        except Exception as e:
+            print('ERROR: Could not read config file')
+            print(e)
+            sys.exit(2)
+        try:
+            config = json.loads(configdata.read().replace('\n', ''))
+            configdata.close()
+        except Exception as e:
+            print('ERROR: Failed to load config data')
+            print(e)
+            sys.exit(2)
+        # Transalte config to variables
+        acu = config['acu']
+        host = config['host']
+        port = config['port']
+        community = config['community']
+        interval = config['interval']
+    else:
+        # If not config file check amount of parameters
+        if len(sys.argv) != 11:
+            print('ERROR: Missing arguments. See below example:')
+            print('getgps.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
+            sys.exit(2)
+
 
     # Init SNMP
-    print("MAIN: Configure SNMP")
-    snmp = SNMP(acu, host, port, community, lfile)
+    print('MAIN: Configure SNMP')
+    snmp = SNMP(acu, host, port, community, lfile, interval)
 
     # Start thread to fetch data
-    print("MAIN: Setup thread for fetching")
+    print('MAIN: Setup thread for fetching')
     snmpthread = threading.Thread(target = snmp.start)
-    print("MAIN: Start SNMP")
+    print('MAIN: Start SNMP')
     try:
         snmpthread.start()
     except KeyboardInterrupt:
-        print("\nMAIN: SNMP fetching aborted by user")
+        print('\nMAIN: SNMP fetching aborted by user')
         snmp.stop(True)
     except Exception as e:
-        print("\nMAIN: SNMP fetching error")
+        print('\nMAIN: SNMP fetching error')
         print(e)
         snmp.stop(True)
 
-    print("MAIN: Configure SERVER")
+    print('MAIN: Configure SERVER')
     server = Server('', lport, lfile)
-    print("MAIN: Start SERVER")
+    print('MAIN: Start SERVER')
     try:
         server.listen()
     except KeyboardInterrupt:
         snmp.stop(True)
         server.stop(True)
     except Exception as e:
-        print("\nMAIN: SERVER had an unknown error")
+        print('\nMAIN: SERVER had an unknown error')
         print(e)
         snmp.stop(True)
         server.stop(True)
 
-    print("\nMAIN: Application has stopped")
+    print('\nMAIN: Application has stopped')
