@@ -146,7 +146,7 @@ class SNMP(object):
     def write(self, nmeastring):
         nmeafile = open(self.file, 'w')
         nmeafile.write(nmeastring)
-        nmeafile.write('\n')
+        nmeafile.write('\r\n')
         nmeafile.close()
 
     def collect(self):
