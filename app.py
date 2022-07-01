@@ -206,7 +206,7 @@ class SNMP(object):
 if __name__ == '__main__':
     print('MAIN: Starting')
     lfile = '/tmp/data.file'
-    lport = int(5555)
+    lport = int(5454)
     file = False
 
     try:
