@@ -16,43 +16,43 @@ class Server(object):
     def stop(self, running):
         if running:
             self.running = False
-        print("\nSERVER: Stopping")
+        print('\nSERVER: Stopping')
         return True
 
     def listen(self):
         self.sock.listen(5)
         while True:
-            # print("SERVER: Waiting for new connection")
+            # print('SERVER: Waiting for new connection')
             client, address = self.sock.accept()
             client.settimeout(5)
             threading.Thread(target = self.listenToClient,args = (client,)).start()
 
     def send(self, client):
         ip, port = client.getpeername()
-        content = open(self.file, "rb")
+        content = open(self.file, 'rb')
         content = content.read()
         try:
-            # print("SERVER: Sent data to "+ip+":"+str(port))
+            # print('SERVER: Sent data to '+ip+':'+str(port))
             client.sendall(content)
             return True
         except KeyboardInterrupt:
-            print("SERVER: User aborted server in send")
+            print('SERVER: User aborted server in send')
         except Exception as e:
-            print("SERVER: Failed connection for "+ip+":"+str(port))
+            print('SERVER: Failed connection for '+ip+':'+str(port))
             print(e)
             return False
 
     def listenToClient(self, client):
-        # print("SERVER: Client connected")
+        # print('SERVER: Client connected')
         while True:
             try:
                 if not self.send(client):
                     client.close()
                     break
             except KeyboardInterrupt:
-                print("SERVER: User aborted server in listenToClient")
+                print('SERVER: User aborted server in listenToClient')
             except Exception as e:
-                # print("SERVER: Client disconnected")
+                # print('SERVER: Client disconnected')
                 print(e)
                 client.close()
                 return False
@@ -94,7 +94,7 @@ class SNMP(object):
     def stop(self, running):
         if running:
             self.running = False
-        print("\nSNMP: Stopping")
+        print('\nSNMP: Stopping')
         return True
 
     def start(self):
@@ -113,7 +113,7 @@ class SNMP(object):
                 nmeastring = '$'+string+'*'+check
 
                 # Print for debug
-                # print("NMEA: "+nmeastring)
+                # print('NMEA: '+nmeastring)
 
                 # Save full NMEA string to file
                 self.write(nmeastring)
@@ -126,10 +126,10 @@ class SNMP(object):
                     time.sleep(1)
 
         except KeyboardInterrupt:
-            print("SNMP: Fetching aborted")
+            print('SNMP: Fetching aborted')
             sys.exit(2)
         except Exception as e:
-            print("SNMP: Unknown error occured")
+            print('SNMP: Unknown error occured')
             print(e)
             sys.exit(2)
 
@@ -139,13 +139,14 @@ class SNMP(object):
             output = stream.read().strip().strip('"')
         except Exception as e:
             output = '00.0000 X'
-            print("failed to get snmp from acu")
+            print('failed to get snmp from acu')
             print(e)
         return output
 
     def write(self, nmeastring):
-        nmeafile = open(self.file, "w")
-        nmeafile.write(nmeastring+"\n")
+        nmeafile = open(self.file, 'w')
+        nmeafile.write(nmeastring)
+        nmeafile.write('\n')
         nmeafile.close()
 
     def collect(self):
@@ -159,7 +160,7 @@ class SNMP(object):
         #check if acu output needs conversion
         # Rewrite data if not type = intellian_v100
         if not self.type == 'intellian_v100':
-            print("SNMP: Trying to rewrite data")
+            print('SNMP: Trying to rewrite data')
             data_new = 'rewrite data format'
             data = data_new
         return data
@@ -202,9 +203,9 @@ class SNMP(object):
         string = TYPE+','+TIMESTAMP+','+STATUS+','+LATITUDE+','+LATIND+','+LONGITUDE+','+LONGIND+','+SPEED+','+COURSE+','+DATE+','+MAGNETIC+','+MODE+','
         return string
 
-if __name__ == "__main__":
-    print("MAIN: Starting")
-    lfile = "/tmp/data.file"
+if __name__ == '__main__':
+    print('MAIN: Starting')
+    lfile = '/tmp/data.file'
     lport = int(5555)
     file = False
 
