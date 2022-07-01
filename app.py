@@ -135,7 +135,7 @@ class SNMP(object):
 
     def get(self, oid):
         try:
-            stream = os.popen('/root/snmpget -v2c -Ovq -c'+self.community+' '+self.host+' '+oid+' 2>/dev/null')
+            stream = os.popen('/etc/pymea/snmpget -v2c -Ovq -c'+self.community+' '+self.host+' '+oid+' 2>/dev/null')
             output = stream.read().strip().strip('"')
         except Exception as e:
             output = '00.0000 X'
