@@ -165,13 +165,28 @@ class SNMP(object):
             data = data_new
         return data
 
-    def dms(self, decimal):
+    def dms(self, decimal, type):
         fract,whole = math.modf(decimal)
         seconds,minutes = math.modf(abs(fract) * 60)
         degree = whole*100+minutes
-        result = degree+minutes+seconds
+        deglen = len(str(degree))
+        if type == 'longitude':
+            if deglen == 5:
+                padding = '00'
+            elif deglen == 6:
+                padding = '0'
+            else:
+                padding = ''
+            result = degree+minutes+seconds
+        else:
+            if deglen == 5:
+                padding = '0'
+            else:
+                padding = ''
+            result = degree+minutes+seconds
+
         array = str(Decimal(result)).split('.')
-        prefix = array[0]
+        prefix = padding+str(array[0])
         if len(array) != 2:
             suffix = '0000'
         else:
@@ -190,9 +205,9 @@ class SNMP(object):
         TYPE      = 'GPRMC'
         TIMESTAMP = datetime.datetime.now().strftime('%H%M%S') #HHMMSS
         STATUS    = 'A' #A=Valid, V=Invalid
-        LATITUDE  = str(self.dms(float(data['latitude'].split(' ')[0]))) #ddmm.mmmm
+        LATITUDE  = str(self.dms(float(data['latitude'].split(' ')[0]), 'latitude')) #ddmm.mmmm
         LATIND    = data['latitude'].split(' ')[1] #N=North, S=South
-        LONGITUDE = str(self.dms(float(data['longitude'].split(' ')[0]))) #dddmm.mmmm
+        LONGITUDE = str(self.dms(float(data['longitude'].split(' ')[0]), 'longitude')) #dddmm.mmmm
         LONGIND   = data['longitude'].split(' ')[1] #W=West, E=East
         SPEED     = str(data['speed']) #Speed over ground
         COURSE    = str(data['heading']) #Course over ground (heading?)
