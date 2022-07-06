@@ -1,0 +1,31 @@
+- name: Install PYMEA
+  strategy: free
+
+  hosts:
+    - all
+
+  tasks:
+
+    - name: Create PYMEA folder
+      file:
+        path: /etc/pymea/
+        state: directory
+
+    - name: Upload PYMEA
+      copy:
+        src: /var/lib/awx/projects/bc5/files/pymea/
+        dest: /etc/pymea/
+        mode: 0755
+
+    - name: Copy service file locally
+      copy:
+        remote_src: yes
+        src: /etc/pymea/pymea.service
+        dest: /etc/systemd/system/pymea.service
+
+    - name: Enable PYMEA service
+      systemd:
+        name: pymea
+        enabled: yes
+        daemon_reload: yes
+        state: started
