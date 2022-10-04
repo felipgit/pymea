@@ -136,14 +136,16 @@ class SNMP(object):
     def get(self, oid):
         try:
             stream = os.popen('/etc/pymea/snmpget -v2c -Ovq -c'+self.community+' '+self.host+' '+oid+' 2>/dev/null')
-            output = stream.read().strip().strip('"')
         except Exception as e:
-            output = '00.0000 X'
+            output = '00.0000 N'
             print('failed to get snmp from acu')
             print(e)
+        else:
+            output = stream.read().strip().strip('"')
         return output
 
     def write(self, nmeastring):
+        #TODO: Add try,except,else
         nmeafile = open(self.file, 'w')
         nmeafile.write(nmeastring)
         nmeafile.write('\r\n')
@@ -253,17 +255,19 @@ if __name__ == '__main__':
             print('ERROR: Failed to get PID')
             print(e)
             sys.exit(2)
+
         try:
             pidfile.write(pid)
-            pidfile.close()
         except Exception as e:
             print('ERROR: Failed to save PID')
             print(e)
             sys.exit(2)
+        else:
+            pidfile.close()
 
     # Check if config file has been specified
     if file:
-        # Read values from config file
+        # Load config file
         try:
             configdata = open(file, 'r')
         except FileNotFoundError:
@@ -273,13 +277,17 @@ if __name__ == '__main__':
             print('ERROR: Could not read config file')
             print(e)
             sys.exit(2)
-        try:
-            config = json.loads(configdata.read().replace('\n', ''))
-            configdata.close()
-        except Exception as e:
-            print('ERROR: Failed to load config data')
-            print(e)
-            sys.exit(2)
+        else:
+            # Read config values from loaded config file
+            try:
+                config = json.loads(configdata.read().replace('\n', ''))
+            except Exception as e:
+                print('ERROR: Failed to load config data')
+                print(e)
+                sys.exit(2)
+            finally:
+                configdata.close()
+
         # Transalte config to variables
         acu = config['acu']
         host = config['host']
