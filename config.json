@@ -3,5 +3,5 @@
     "host": "acu.vessel.local",
     "port": 161,
     "community": "public",
-    "interval": 600
+    "interval": 30
 }
