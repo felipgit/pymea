@@ -98,8 +98,8 @@ class SNMP(object):
         return True
 
     def start(self):
-        try:
-            while self.running:
+        while self.running:
+            try:
                 # Get data from source
                 data = self.collect()
 
@@ -118,20 +118,19 @@ class SNMP(object):
                 # Save full NMEA string to file
                 self.write(nmeastring)
 
+            except KeyboardInterrupt:
+                print('SNMP: Fetching aborted')
+                sys.exit(2)
+            except Exception as e:
+                print('SNMP: Failed to fetch proper data')
+                print(e)
+            finally:
                 # Wait for new interval
                 for i in range(1, self.interval):
                     i += 1
                     if not self.running:
                         break
                     time.sleep(1)
-
-        except KeyboardInterrupt:
-            print('SNMP: Fetching aborted')
-            sys.exit(2)
-        except Exception as e:
-            print('SNMP: Unknown error occured')
-            print(e)
-            sys.exit(2)
 
     def get(self, oid):
         try:
@@ -159,7 +158,7 @@ class SNMP(object):
                 data[value] = self.get(self.acu_models[self.type][value])
             else:
                 data[value] = ''
-        #check if acu output needs conversion
+        # Check if acu output needs conversion
         # Rewrite data if not type = intellian_v100
         if not self.type == 'intellian_v100':
             print('SNMP: Trying to rewrite data')
@@ -230,7 +229,7 @@ if __name__ == '__main__':
         opts, args = getopt.getopt(sys.argv[1:],'h:c:a:p:f:i:',['host=','community=','acu=','port=','file','interval'])
     except getopt.GetoptError:
         print('ERROR: Bad arguments. See below example:')
-        print('getgps.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
+        print('app.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
         sys.exit(2)
 
     for opt, arg in opts:
@@ -298,7 +297,7 @@ if __name__ == '__main__':
         # If not config file check amount of parameters
         if len(sys.argv) != 11:
             print('ERROR: Missing arguments. See below example:')
-            print('getgps.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
+            print('app.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
             sys.exit(2)
 
 
