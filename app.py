@@ -143,11 +143,20 @@ class SNMP(object):
         return output
 
     def write(self, nmeastring):
-        #TODO: Add try,except,else
-        nmeafile = open(self.file, 'w')
-        nmeafile.write(nmeastring)
-        nmeafile.write('\r\n')
-        nmeafile.close()
+        try:
+            nmeafile = open(self.file, 'w')
+        except Exception as e:
+            print('SNMP: Failed to open data file as write')
+            print(e)
+        else:
+            try:
+                nmeafile.write(nmeastring)
+                nmeafile.write('\r\n')
+            except Exception as e:
+                print('SNMP: Failed to write content to data file')
+                print(e)
+        finally:
+            nmeafile.close()
 
     def collect(self):
         data = {}
