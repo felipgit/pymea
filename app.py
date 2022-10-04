@@ -60,7 +60,6 @@ class Server(object):
             if not self.running:
                 break
 
-
 class SNMP(object):
     def __init__(self, type, host, port, community, file, interval):
         self.type = type
@@ -299,7 +298,6 @@ if __name__ == '__main__':
             print('ERROR: Missing arguments. See below example:')
             print('app.py -h 10.224.77.2 -c public -a intellian_v100 -p 161')
             sys.exit(2)
-
 
     # Init SNMP
     print('MAIN: Configure SNMP')
