@@ -186,13 +186,13 @@ class SNMP(object):
                 padding = '0'
             else:
                 padding = ''
-            result = degree+minutes+seconds
+            result = degree+seconds
         else:
             if deglen == 5:
                 padding = '0'
             else:
                 padding = ''
-            result = degree+minutes+seconds
+            result = degree+seconds
 
         array = str(Decimal(result)).split('.')
         prefix = padding+str(array[0])
