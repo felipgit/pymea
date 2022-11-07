@@ -174,36 +174,29 @@ class SNMP(object):
             data = data_new
         return data
 
-    def dms(self, decimal, type):
-        fract,whole = math.modf(decimal)
-        seconds,minutes = math.modf(abs(fract) * 60)
-        degree = whole*100+minutes
-        deglen = len(str(degree))
-        if type == 'longitude':
-            if deglen == 5:
-                padding = '00'
-            elif deglen == 6:
-                padding = '0'
-            else:
-                padding = ''
-            result = degree+seconds
+    def dms(self, data, direction):
+        # Convert decimal data to a degree int
+        degint = int(data)
+        # Calculate minutes from the fraction of input degree
+        minutes = float((Decimal(str(data)) - Decimal(str(degint))) * Decimal(str(60.0)))
+        # Expand degree to correct value for dms
+        deglen = len(str(degint * 100))
+        # Depending on direction type, set padding to get correct length
+        if direction == 'longitude':
+            padding = '0' * (5 - deglen)
+        elif direction == 'latitude':
+            padding = '0' * (4 - deglen)
         else:
-            if deglen == 5:
-                padding = '0'
-            else:
-                padding = ''
-            result = degree+seconds
-
-        array = str(Decimal(result)).split('.')
-        prefix = padding+str(array[0])
-        if len(array) != 2:
-            suffix = '0000'
-        else:
-            if len(array[1]) < 4:
-                suffix = str(array[1]).ljust(4, '0')
-            if len(array[1]) > 4:
-                suffix = str(array[1][0:4])
-        return prefix+'.'+suffix
+            padding = ''
+        # Put togehter the value
+        value = (degint * 100) + minutes
+        # Get lenght of the fraction
+        fractlen = len(str(int(str(float(Decimal(str(minutes)) - Decimal(str(int(minutes))))).split('.')[1])))
+        # Expand the fraction to correct length
+        suffix = '0' * (6 - fractlen)
+        # Merge the result
+        result = str(padding)+str(value)+str(suffix)
+        return result
 
     def checksum(self, string):
         string = string.strip().strip('$\n')
