@@ -20,3 +20,4 @@ And some other resources that have helped me:
 - [RL.SE GPRMC Decoder](https://rl.se/gprmc)
 - [EQTH.NET NMEA Checksum Calculator](https://nmeachecksum.eqth.net/)
 - [BLUECOVER.PT NMEA Analyzer](https://swairlearn.bluecover.pt/nmea_analyser)
+- [NMEA-0183 GPS Output Structure](https://adamchukpa.mcgill.ca/web_ssm/web_GPS_NMEA.html#RMC)
