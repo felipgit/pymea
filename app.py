@@ -172,7 +172,7 @@ class SNMP(object):
         for value in values:
             if self.type == 'intellian_v100':
                 # Rewrite the value to correct lenght for NMEA output
-                data[value] = str(self.value_to_lenght(data[value].split(' ')[0], data[value].split(' ')[1]))+' '+data[value].split(' ')[1]
+                data[value] = str(self.value_to_lenght(data[value].split(' ')[0], value))+' '+data[value].split(' ')[1]
         if not self.type == 'intellian_v100':
             print('SNMP: Trying to rewrite data')
             data_new = 'rewrite data format'
@@ -181,7 +181,7 @@ class SNMP(object):
 
     def dms(self, data, direction):
         # Convert decimal data to a degree int
-        degint = int(data)
+        degint = int(float(data))
         # Calculate minutes from the fraction of input degree
         minutes = float((Decimal(str(data)) - Decimal(str(degint))) * Decimal(str(60.0)))
         # Expand degree to correct value for dms
@@ -204,24 +204,28 @@ class SNMP(object):
         return result
 
     def value_to_lenght(self, data, direction):
-        deglen = len(str(data * 100))
+        # Convert decimal data to a degree int
+        degint = int(float(data))
+        # Calculate minutes from the fraction of input degree
+        minutes = float(Decimal(str(data)) - Decimal(str(degint)))
+        # Expand degree to correct value for dms
+        deglen = len(str(degint * 100))
         # Depending on direction type, set padding to get correct length
-        # longitude is expected to be 5 digits
-        # latitude is expected to be 4 digits
         if direction == 'longitude':
             padding = '0' * (5 - deglen)
         elif direction == 'latitude':
             padding = '0' * (4 - deglen)
         else:
             padding = ''
-
-        # Get the fraction and lenght
-        fractal =  str(data).split('.')[1]
-        fractlen = len(fractal)
+        # Put togehter the value
+        value = (degint * 100) + (minutes * 100)
+        # Get lenght of the fraction
+        fractlen = len(str(minutes*100).split('.')[1])
         # Expand the fraction to correct length
         suffix = '0' * (6 - fractlen)
-
-        return str(padding)+str(data)+str(suffix)
+        # Merge the result
+        result = str(padding)+str(value)+str(suffix)
+        return result
 
     def checksum(self, string):
         string = string.strip().strip('$\n')
