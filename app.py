@@ -168,6 +168,11 @@ class SNMP(object):
                 data[value] = ''
         # Check if acu output needs conversion
         # Rewrite data if not type = intellian_v100
+        values = ['latitude', 'longitude']
+        for value in values:
+            if self.type == 'intellian_v100':
+                # Rewrite the value to correct lenght for NMEA output
+                data[value] = str(self.value_to_lenght(data[value].split(' ')[0], data[value].split(' ')[1]))+' '+data[value].split(' ')[1]
         if not self.type == 'intellian_v100':
             print('SNMP: Trying to rewrite data')
             data_new = 'rewrite data format'
