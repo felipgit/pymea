@@ -198,6 +198,26 @@ class SNMP(object):
         result = str(padding)+str(value)+str(suffix)
         return result
 
+    def value_to_lenght(self, data, direction):
+        deglen = len(str(data * 100))
+        # Depending on direction type, set padding to get correct length
+        # longitude is expected to be 5 digits
+        # latitude is expected to be 4 digits
+        if direction == 'longitude':
+            padding = '0' * (5 - deglen)
+        elif direction == 'latitude':
+            padding = '0' * (4 - deglen)
+        else:
+            padding = ''
+
+        # Get the fraction and lenght
+        fractal =  str(data).split('.')[1]
+        fractlen = len(fractal)
+        # Expand the fraction to correct length
+        suffix = '0' * (6 - fractlen)
+
+        return str(padding)+str(data)+str(suffix)
+
     def checksum(self, string):
         string = string.strip().strip('$\n')
         checksum = reduce(operator.xor, (ord(s) for s in string), 0)
