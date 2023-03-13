@@ -227,9 +227,11 @@ class SNMP(object):
         TYPE      = 'GPRMC'
         TIMESTAMP = datetime.datetime.now().strftime('%H%M%S') #HHMMSS
         STATUS    = 'A' #A=Valid, V=Invalid
-        LATITUDE  = str(self.dms(float(data['latitude'].split(' ')[0]), 'latitude')) #ddmm.mmmm
+        # LATITUDE  = str(self.dms(float(data['latitude'].split(' ')[0]), 'latitude')) #ddmm.mmmm
+        LATITUDE  = data['latitude'].split(' ')[0] #ddmm.mmmm
         LATIND    = data['latitude'].split(' ')[1] #N=North, S=South
-        LONGITUDE = str(self.dms(float(data['longitude'].split(' ')[0]), 'longitude')) #dddmm.mmmm
+        # LONGITUDE = str(self.dms(float(data['longitude'].split(' ')[0]), 'longitude')) #dddmm.mmmm
+        LONGITUDE = data['longitude'].split(' ')[0] #dddmm.mmmm
         LONGIND   = data['longitude'].split(' ')[1] #W=West, E=East
         SPEED     = str(data['speed']) #Speed over ground
         COURSE    = str(data['heading']) #Course over ground (heading?)
