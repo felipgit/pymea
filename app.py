@@ -184,15 +184,7 @@ class SNMP(object):
         degint = int(float(data))
         # Calculate minutes from the fraction of input degree
         minutes = float((Decimal(str(data)) - Decimal(str(degint))) * Decimal(str(60.0)))
-        # Expand degree to correct value for dms
-        deglen = len(str(degint * 100))
-        # Depending on direction type, set padding to get correct length
-        if direction == 'longitude':
-            padding = '0' * (5 - deglen)
-        elif direction == 'latitude':
-            padding = '0' * (4 - deglen)
-        else:
-            padding = ''
+        padding = self.padding_zeros(degint, direction)
         # Put togehter the value
         value = (degint * 100) + minutes
         # Get lenght of the fraction
@@ -208,15 +200,7 @@ class SNMP(object):
         degint = int(float(data))
         # Calculate minutes from the fraction of input degree
         minutes = float(Decimal(str(data)) - Decimal(str(degint)))
-        # Expand degree to correct value for dms
-        deglen = len(str(degint * 100))
-        # Depending on direction type, set padding to get correct length
-        if direction == 'longitude':
-            padding = '0' * (5 - deglen)
-        elif direction == 'latitude':
-            padding = '0' * (4 - deglen)
-        else:
-            padding = ''
+        padding = self.padding_zeros(degint, direction)
         # Put togehter the value
         value = (degint * 100) + (minutes * 100)
         # Get lenght of the fraction
@@ -226,6 +210,18 @@ class SNMP(object):
         # Merge the result
         result = str(padding)+str(value)+str(suffix)
         return result
+
+    def padding_zeros(self, degint, direction):
+        # Expand degree to correct value for dms
+        deglen = len(str(degint * 100))
+        # Depending on direction type, set padding to get correct length
+        if direction == 'longitude':
+            padding = '0' * (5 - deglen)
+        elif direction == 'latitude':
+            padding = '0' * (4 - deglen)
+        else:
+            padding = ''
+        return padding
 
     def checksum(self, string):
         string = string.strip().strip('$\n')
